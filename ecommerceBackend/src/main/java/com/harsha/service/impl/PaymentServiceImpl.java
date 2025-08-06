@@ -1,9 +1,11 @@
 package com.harsha.service.impl;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import java.util.Set;
 
 import org.json.JSONObject;
- 
+
 import org.springframework.stereotype.Service;
 
 import com.harsha.domain.PaymentOrderStatus;
@@ -27,31 +29,34 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class PaymentServiceImpl implements PaymentService{
-    
-    
+public class PaymentServiceImpl implements PaymentService {
+
     private PaymentOrderRepository paymentOrderRepository;
     private OrderRepository orderRepository;
-    
-    private String apiKey="rzp_test_TPzbm68gru5AN4";
-    private String apiSecret="34VZY8BkJt7dx2kpNnCrZWHS";
-    // private String stripeKey="pk_test_51QnOkHEnCbguc0eKfXGrnBAXjECg2Kpz0MsKgsvX4Q3onrb0WTh2aJGvU8YOJuXI94G9glN2KepXUj2jW7JRPBo700uVVThgsG";
-    private String stripeSecret="sk_test_51QnOkHEnCbguc0eKruxH2SMajOw1Qk8SDBmiNqeRcpZyHGpwA616KQtIShWC7iXTgGbx9BXRZMjuyUh8czHYqJRS00l3U1VgSS";
 
+    @Value("${RAZORPAY_KEY}")
+    private String apiKey;
+
+    @Value("${RAZORPAY_SECRET}")
+    private String apiSecret;
+
+    @Value("${STRIPE_SECRET}")
+    private String stripeSecret;
 
     @Override
-    public Boolean ProceedPaymentOrder(PaymentOrder paymentOrder, String paymentId, String paymentLinkId) throws RazorpayException {
-        
-        if(paymentOrder.getStatus().equals(PaymentOrderStatus.PENDING)){
-            RazorpayClient razorpay=new RazorpayClient(apiKey,apiSecret); 
-            
-            Payment payment=razorpay.payments.fetch(paymentId);
+    public Boolean ProceedPaymentOrder(PaymentOrder paymentOrder, String paymentId, String paymentLinkId)
+            throws RazorpayException {
 
-            String status=payment.get("status");
+        if (paymentOrder.getStatus().equals(PaymentOrderStatus.PENDING)) {
+            RazorpayClient razorpay = new RazorpayClient(apiKey, apiSecret);
 
-            if(status.equals("captured")){
-                Set<Order> orders=paymentOrder.getOrders();
-                for(Order order:orders){
+            Payment payment = razorpay.payments.fetch(paymentId);
+
+            String status = payment.get("status");
+
+            if (status.equals("captured")) {
+                Set<Order> orders = paymentOrder.getOrders();
+                for (Order order : orders) {
                     order.setPaymentStatus(PaymentStatus.COMPLETED);
                     orderRepository.save(order);
                 }
@@ -68,9 +73,9 @@ public class PaymentServiceImpl implements PaymentService{
 
     @Override
     public PaymentOrder createOrder(User user, Set<Order> orders) {
-        Long amount=orders.stream().mapToLong(Order::getTotalSellingPrice).sum();
+        Long amount = orders.stream().mapToLong(Order::getTotalSellingPrice).sum();
 
-        PaymentOrder paymentOrder=new PaymentOrder();
+        PaymentOrder paymentOrder = new PaymentOrder();
         paymentOrder.setAmount(amount);
         paymentOrder.setUser(user);
         paymentOrder.setOrders(orders);
@@ -79,80 +84,78 @@ public class PaymentServiceImpl implements PaymentService{
 
     @Override
     public PaymentLink createRazorpayPaymentLink(User user, Long amount, Long orderId) throws RazorpayException {
-        amount=amount*100;
+        amount = amount * 100;
         try {
-            RazorpayClient razorpay=new RazorpayClient(apiKey,apiSecret); 
+            RazorpayClient razorpay = new RazorpayClient(apiKey, apiSecret);
 
-            JSONObject paymentLinkRequest=new JSONObject();
-            paymentLinkRequest.put("amount",amount);
-            paymentLinkRequest.put("currency","INR");
+            JSONObject paymentLinkRequest = new JSONObject();
+            paymentLinkRequest.put("amount", amount);
+            paymentLinkRequest.put("currency", "INR");
 
-            JSONObject customer=new JSONObject();
-            customer.put("name",user.getFullName());
-            customer.put("email",user.getEmail());
+            JSONObject customer = new JSONObject();
+            customer.put("name", user.getFullName());
+            customer.put("email", user.getEmail());
             paymentLinkRequest.put("customer", customer);
-            
-            JSONObject notify=new JSONObject();
-            notify.put("email",true);
+
+            JSONObject notify = new JSONObject();
+            notify.put("email", true);
             paymentLinkRequest.put("notify", notify);
 
-            paymentLinkRequest.put("callback_url", "http://localhost:3000/payment-success/"+orderId);
+            paymentLinkRequest.put("callback_url", "http://localhost:3000/payment-success/" + orderId);
             paymentLinkRequest.put("callback_method", "get");
 
-            PaymentLink paymentLink= razorpay.paymentLink.create(paymentLinkRequest);
+            PaymentLink paymentLink = razorpay.paymentLink.create(paymentLinkRequest);
 
-            String paymentLinkUrl=paymentLink.get("short_url");
-            String paymentLinkId=paymentLink.get("id");
+            String paymentLinkUrl = paymentLink.get("short_url");
+            String paymentLinkId = paymentLink.get("id");
 
             return paymentLink;
-
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw new RazorpayException(e.getMessage());
         }
-       
+
     }
 
     @Override
     public String createStripePaymentLink(User user, Long amount, Long orderId) throws StripeException {
-        Stripe.apiKey=stripeSecret;
+        Stripe.apiKey = stripeSecret;
 
-        SessionCreateParams params=SessionCreateParams.builder()
-            .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
-            .setMode(SessionCreateParams.Mode.PAYMENT)
-            .setSuccessUrl("http://localhost:3000/payment-success/"+orderId)
-            .setCancelUrl("http://localhost:3000/payment-cancel/")
-            .addLineItem(SessionCreateParams.LineItem.builder()
+        SessionCreateParams params = SessionCreateParams.builder()
+                .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
+                .setMode(SessionCreateParams.Mode.PAYMENT)
+                .setSuccessUrl("http://localhost:3000/payment-success/" + orderId)
+                .setCancelUrl("http://localhost:3000/payment-cancel/")
+                .addLineItem(SessionCreateParams.LineItem.builder()
                         .setQuantity(1L)
                         .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
-                            .setCurrency("usd")
-                            .setUnitAmount(amount*100)
-                            .setProductData(
-                                SessionCreateParams.LineItem.PriceData.ProductData.builder().setName("Ecommerce Mutli Vendor payment").build()
-                            ).build()
-                        ).build()
-            )
-            .build();
-        Session session=Session.create(params);
+                                .setCurrency("usd")
+                                .setUnitAmount(amount * 100)
+                                .setProductData(
+                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                .setName("Ecommerce Mutli Vendor payment").build())
+                                .build())
+                        .build())
+                .build();
+        Session session = Session.create(params);
         return session.getUrl();
     }
 
     @Override
     public PaymentOrder getPaymentOrderById(Long orderId) throws Exception {
-        
-        return paymentOrderRepository.findById(orderId).orElseThrow(()->new Exception("payment order not found"));
+
+        return paymentOrderRepository.findById(orderId).orElseThrow(() -> new Exception("payment order not found"));
     }
 
     @Override
     public PaymentOrder getPaymentOrderByPaymentId(String orderId) throws Exception {
-        PaymentOrder paymentOrder=paymentOrderRepository.findByPaymentLinkId(orderId);
-        
-        if(paymentOrder == null){
+        PaymentOrder paymentOrder = paymentOrderRepository.findByPaymentLinkId(orderId);
+
+        if (paymentOrder == null) {
             throw new Exception("payment order not found with provided payment link id");
         }
         return paymentOrder;
     }
-    
-    
+
 }
