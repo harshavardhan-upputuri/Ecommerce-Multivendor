@@ -1,10 +1,10 @@
 import React from 'react'
 
-const ElectricCategorycard = () => {
+const ElectricCategorycard = ({item}) => {
   return (
-    <div>
-        <img className="object-contain h-10" src="https://rukminim2.flixcart.com/image/312/312/xif0q/computer/x/9/j/-original-imahyjzh7m2zsqdg.jpeg?q=70" alt="" />
-        <h2 className='font-semibold text-sm'>Laptop</h2>
+    <div className='flex flex-col items-center gap-2'>
+        <img className=" object-cover h-10 w-10  rounded-md" src={item.image} alt="" />
+        <h2 className='font-semibold text-sm'>{item.name}</h2>
     </div>
   )
 }

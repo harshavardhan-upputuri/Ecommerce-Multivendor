@@ -33,6 +33,7 @@ public class HomeCategoryController {
 
         List<HomeCategory> categories=homeCategoryService.createCategories(homeCategories);
         Home home=homeService.createHomePageData(categories);
+        // System.out.println(home.toString());
         return new ResponseEntity<>(home,HttpStatus.ACCEPTED);
     }
 

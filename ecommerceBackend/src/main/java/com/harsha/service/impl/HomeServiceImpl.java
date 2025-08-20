@@ -26,7 +26,7 @@ public class HomeServiceImpl implements HomeService{
          
         List<HomeCategory> gridCategories=allCategories.stream().filter(category-> category.getSection()==HomeCategorySection.GRID).collect(Collectors.toList());
 
-        List<HomeCategory> shopByCategories=allCategories.stream().filter(category-> category.getSection()==HomeCategorySection.SHOP_BY_CATEGOROES).collect(Collectors.toList());
+        List<HomeCategory> shopByCategories=allCategories.stream().filter(category-> category.getSection()==HomeCategorySection.SHOP_BY_CATEGORIES).collect(Collectors.toList());
 
 
         List<HomeCategory> electricCategories= allCategories.stream().filter(category->category.getSection()==HomeCategorySection.ELECTRIC_CATEGORIES).collect(Collectors.toList());
@@ -53,7 +53,7 @@ public class HomeServiceImpl implements HomeService{
         home.setDealCategories(dealCategories);
 
         
-        return null;
+        return home;
     }
     
     

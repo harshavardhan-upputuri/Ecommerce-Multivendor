@@ -50,7 +50,7 @@ public class AppConfig {
             @Nullable
             public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                 CorsConfiguration cfg= new CorsConfiguration();
-                cfg.setAllowedOrigins(Collections.singletonList("*")); // Allow requests from any origin
+                cfg.setAllowedOrigins(Collections.singletonList("http://localhost:5173/")); // Allow requests from any origin
                 cfg.setAllowedMethods(Collections.singletonList("*")); // Allow all HTTP methods (GET, POST, PUT, etc.)
                 cfg.setAllowedHeaders(Collections.singletonList("*")); // Allow all headers in the request
                 cfg.setAllowCredentials(true); // Allow cookies and Authorization headers (credentials) in cross-origin requests

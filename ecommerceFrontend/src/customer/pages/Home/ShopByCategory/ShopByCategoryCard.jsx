@@ -1,12 +1,12 @@
 import React from 'react'
-
-const ShopByCategoryCard = () => {
+import  "./ShopByCategory.css"
+const ShopByCategoryCard = ({item}) => {
   return (
     <div className='flex gap-3 flex-col justify-center items-center group cursor-pointer'>
-        <div className='h-[150px] w-[150px] lg:w-[249px] rounded-full  bg-primary'>
-            <img className=' group-hover:scale-x-95 transition-transform transform-duration-700 object-cover object-top h-full w-full' src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFa3ri9vgZ6Pqten9j8XZonPlf9yZD27ghcQ&s" alt="" />
+        <div className='custom-border h-[150px] w-[150px] lg:w-[249px] lg:h-[249px] rounded-full  bg-primary'>
+            <img className='rounded-full group-hover:scale-95 transition-transform transform-duration-700 object-cover object-top h-full w-full' src={item.image} alt="" />
         </div>
-        <h1>Kitchen & Table</h1>
+        <h1>{item.name}</h1>
     </div>
   )
 }

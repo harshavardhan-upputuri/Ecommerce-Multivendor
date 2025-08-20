@@ -55,7 +55,13 @@ public class OrderController {
         
         User user=userService.findUserByJwt(jwt);
         Cart cart=cartService.findUserCart(user);
+        System.out.println("user"+user.toString());
+        System.out.println("Cart "+cart.toString());
         Set<Order> orders= orderService.createOrder(user, shippingAddress, cart);
+
+        orders.forEach(o -> System.out.println(
+    "OrderId: " + o.getOrderId() + ", Price: " + o.getTotalSellingPrice() + ", Discount: " + o.getDiscount()
+));
 
         PaymentOrder paymentOrder = paymentService.createOrder(user,orders);
         
@@ -89,7 +95,7 @@ public class OrderController {
     public ResponseEntity<Order> getOrderById(@PathVariable Long orderId,@RequestHeader("Authorization") String jwt) throws Exception{
 
         User user=userService.findUserByJwt(jwt);
-        Order orders=orderService.finOrderById(orderId);
+        Order orders=orderService.findOrderById(orderId);
         
         return new ResponseEntity<>(orders,HttpStatus.ACCEPTED);
     }

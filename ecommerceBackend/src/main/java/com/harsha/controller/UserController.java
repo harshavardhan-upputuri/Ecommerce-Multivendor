@@ -22,7 +22,7 @@ public class UserController {
     private final UserService userService;
 
 
-    @GetMapping("/users/profile")
+    @GetMapping("/api/users/profile")
     public ResponseEntity<User> createUserHandler(@RequestHeader("Authorization") String jwt ) throws Exception{
         
      User user= userService.findUserByJwt(jwt);

@@ -13,7 +13,7 @@ import com.harsha.model.User;
 public interface OrderService {
     
     Set<Order> createOrder(User user,Address shippingAddress,Cart cart);
-    Order finOrderById(long id) throws Exception;
+    Order findOrderById(long id) throws Exception;
     List<Order> usersOrderHistory(Long userId);
     List<Order> sellersOrder(Long sellerId);
     Order updateOrderStatus(Long orderId,OrderStatus orderStatus) throws Exception;
